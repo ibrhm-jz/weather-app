@@ -20,36 +20,69 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     initializeDateFormatting('es', null);
     return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => WeatherProvider()),
-          ChangeNotifierProvider(create: (_) => AirLabsProvider()),
-        ],
-        builder: (context, _) {
-          return MaterialApp(
-            title: 'Flutter Demo',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              primarySwatch: Colors.indigo,
-              scaffoldBackgroundColor: Colors.white,
-              fontFamily: 'Adam',
-              appBarTheme: const AppBarTheme(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.transparent,
-                titleTextStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    fontFamily: 'Adam',
-                    fontSize: 20),
-                elevation: 0,
-              ),
+      providers: [
+        ChangeNotifierProvider(create: (_) => WeatherProvider()),
+        ChangeNotifierProvider(create: (_) => AirLabsProvider()),
+      ],
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'Flutter Demo',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.indigo,
+            scaffoldBackgroundColor: Colors.white,
+            fontFamily: 'Adam',
+            appBarTheme: const AppBarTheme(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.transparent,
+              titleTextStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontFamily: 'Adam',
+                  fontSize: 20),
+              elevation: 0,
             ),
-            initialRoute: '/weather',
-            routes: {
-              '/weather': (BuildContext context) => const Weather(),
-              '/countries': (BuildContext context) => const Countries(),
-              '/cities': (BuildContext context) => const Cities(),
-            },
-          );
-        });
+          ),
+          initialRoute: '/weather',
+          routes: {
+            '/countries': (BuildContext context) => const Countries(),
+            '/weather': (BuildContext context) => const Weather(),
+          },
+          onGenerateRoute: (RouteSettings settings) {
+            final args = settings.arguments;
+            switch (settings.name) {
+              case '/cities':
+                if (args is Map<String, dynamic>) {
+                  return PageRouteBuilder(
+                    settings: settings,
+                    pageBuilder: (_, __, ___) => Cities(arguments: args),
+                  );
+                }
+                return _errorRoute();
+              case '/weather-information':
+                if (args is Map<String, dynamic>) {
+                  return PageRouteBuilder(
+                    settings: settings,
+                    pageBuilder: (_, __, ___) => Weather(arguments: args),
+                  );
+                }
+                return _errorRoute();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  static Route<dynamic> _errorRoute() {
+    return MaterialPageRoute(
+      builder: (_) {
+        return const Scaffold(
+          body: Center(
+            child: Text('Incorrect Route'),
+          ),
+        );
+      },
+    );
   }
 }
