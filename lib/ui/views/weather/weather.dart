@@ -4,6 +4,7 @@ import 'package:clima_meteoroligico/data/providers/weather_provider.dart';
 import 'package:clima_meteoroligico/data/repository/open_weather_repository.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_loader.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_type_text.dart';
+import 'package:clima_meteoroligico/utils/service_location.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -30,26 +31,13 @@ class WeatherState extends State<Weather> {
 
   _determinePosition() async {
     setState(() => _loading = true);
-    bool serviceEnabled;
-    LocationPermission permission;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
+    Position? position = await ServiceLocation.instance.position();
+    if (position != null) {
+      setState(() => {this.position = position});
+      await _getWeather();
+    } else {
+      Navigator.of(context).pushReplacementNamed('/countries');
     }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() => {this.position = position});
-    await _getWeather();
   }
 
   _getWeather() async {

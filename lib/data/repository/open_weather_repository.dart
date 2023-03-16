@@ -12,7 +12,7 @@ class OpenWeatherRepository {
     required String longitude,
     String unit = 'metric',
   }) async {
-    Uri baseUri = buildUri(url: weatherUrl, API_WEATHER, params: {
+    Uri baseUri = buildUri(url: weatherUrl, weatherAPI, params: {
       'lat': latitude,
       'lon': longitude,
       'appid': keyWeather,

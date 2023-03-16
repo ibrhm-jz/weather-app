@@ -1,4 +1,7 @@
+import 'package:clima_meteoroligico/data/providers/airlabs_provider.dart';
 import 'package:clima_meteoroligico/data/providers/weather_provider.dart';
+import 'package:clima_meteoroligico/ui/views/cities/cities.dart';
+import 'package:clima_meteoroligico/ui/views/countrys/countries.dart';
 import 'package:clima_meteoroligico/ui/views/weather/weather.dart';
 
 import 'package:flutter/material.dart';
@@ -19,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => WeatherProvider()),
+          ChangeNotifierProvider(create: (_) => AirLabsProvider()),
         ],
         builder: (context, _) {
           return MaterialApp(
@@ -42,6 +46,8 @@ class MyApp extends StatelessWidget {
             initialRoute: '/weather',
             routes: {
               '/weather': (BuildContext context) => const Weather(),
+              '/countries': (BuildContext context) => const Countries(),
+              '/cities': (BuildContext context) => const Cities(),
             },
           );
         });
