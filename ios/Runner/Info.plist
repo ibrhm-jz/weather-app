@@ -24,6 +24,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Usamos este permiso para la locacion</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Usamos este permiso para la locacion</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Usamos este permiso para la locacion</string>
+	<key>location</key>
+	<key>UIBackgroundModes</key>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

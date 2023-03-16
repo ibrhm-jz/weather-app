@@ -1,5 +1,13 @@
+import 'package:clima_meteoroligico/constants/constants.dart';
+import 'package:clima_meteoroligico/data/models/weather_model.dart';
+import 'package:clima_meteoroligico/data/providers/weather_provider.dart';
+import 'package:clima_meteoroligico/data/repository/open_weather_repository.dart';
+import 'package:clima_meteoroligico/ui/widgets/default_loader.dart';
+import 'package:clima_meteoroligico/ui/widgets/default_type_text.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 
 class Weather extends StatefulWidget {
   const Weather({super.key});
@@ -9,183 +17,195 @@ class Weather extends StatefulWidget {
 }
 
 class WeatherState extends State<Weather> {
+  bool _loading = false;
+  Position? position;
+  WeatherModel? weatherModel;
+  late WeatherProvider myWeatherProvider;
+  @override
+  void initState() {
+    _determinePosition();
+
+    super.initState();
+  }
+
+  _determinePosition() async {
+    setState(() => _loading = true);
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() => {this.position = position});
+    await _getWeather();
+  }
+
+  _getWeather() async {
+    OpenWeatherRepository openWeatherRepository = OpenWeatherRepository();
+    final response = await openWeatherRepository.getWeater(
+      latitude: position!.latitude.toString(),
+      longitude: position!.longitude.toString(),
+    );
+    setState(() {
+      weatherModel = response;
+      _loading = false;
+    });
+    myWeatherProvider.setWeather(weather: weatherModel!);
+  }
+
   @override
   Widget build(BuildContext context) {
+    myWeatherProvider = Provider.of<WeatherProvider>(context);
+
     return Scaffold(
-      // backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment(0.0, 0.0),
-              end: Alignment(0.25, 0.75),
-              colors: <Color>[
-                Color.fromARGB(255, 255, 255, 255),
-                Color.fromARGB(255, 234, 248, 255),
-              ],
-            ),
-          ),
-          // decoration: const BoxDecoration(
-          //   gradient: RadialGradient(
-          //     colors: <Color>[
-          //       Color.fromARGB(255, 234, 248, 255),
-          //       Color.fromARGB(255, 255, 255, 255),
-          //     ],
-          //   ),
-          // ),
-          child: Container(
-            margin: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                const Text(
-                  'Clouds',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                  ),
-                ),
-                const Chip(
-                  label: Text(
-                    'Broken clouds',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: const [
-                    FaIcon(
-                      FontAwesomeIcons.cloudRain,
-                      color: Color.fromARGB(255, 187, 186, 186),
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Humidity\n60%',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
-                    ),
-                    SizedBox(width: 25),
-                    FaIcon(
-                      FontAwesomeIcons.gauge,
-                      color: Color.fromARGB(255, 187, 186, 186),
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Pressure\n1016',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
-                  ],
-                ),
-                Expanded(child: Container()),
-                Center(child: Image.asset('assets/04.png')),
-                Expanded(child: Container()),
-                Row(
-                  children: const [
-                    FaIcon(
-                      FontAwesomeIcons.locationPin,
-                      color: Color.fromARGB(255, 187, 186, 186),
-                      size: 16,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Moscuw,Russia',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
-                const Text(
-                  '39 °',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w100,
-                    fontSize: 80,
-                  ),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: const [
-                    FaIcon(
-                      FontAwesomeIcons.temperatureArrowUp,
-                      color: Color.fromARGB(255, 187, 186, 186),
-                      size: 16,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Temp max\n60%',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
-                    ),
-                    SizedBox(width: 20),
-                    FaIcon(
-                      FontAwesomeIcons.temperatureArrowDown,
-                      color: Color.fromARGB(255, 187, 186, 186),
-                      size: 16,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Tem min\n1016',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(width: 20),
-                    FaIcon(
-                      FontAwesomeIcons.wind,
-                      color: Color.fromARGB(255, 187, 186, 186),
-                      size: 16,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Speed\n2.24',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
-                  ],
-                ),
-                SizedBox(height: 20),
-                const Text(
-                  'Feel Likes',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
+      appBar: AppBar(
+        title: const Text(
+          'Weather information',
         ),
       ),
+      body: _loading
+          ? defaultCircularProgress()
+          : SafeArea(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment(-.50, -0.10),
+                    end: Alignment(0.30, 0.20),
+                    colors: <Color>[
+                      Color.fromARGB(255, 255, 255, 255),
+                      Color.fromARGB(255, 235, 247, 253),
+                    ],
+                  ),
+                ),
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Chip(
+                          backgroundColor: Colors.black54,
+                          label: HeadLine1(
+                            label: myWeatherProvider.weather!.weatherMain,
+                            color: Colors.white,
+                          )),
+                      const SizedBox(height: 20),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const FaIcon(
+                            FontAwesomeIcons.cloudRain,
+                            color: Color.fromARGB(255, 187, 186, 186),
+                          ),
+                          const SizedBox(width: 10),
+                          FontSubtitle2(
+                              label:
+                                  'Humidity\n${myWeatherProvider.weather!.humidity}'),
+                          const SizedBox(width: 25),
+                          const FaIcon(
+                            FontAwesomeIcons.gauge,
+                            color: Color.fromARGB(255, 187, 186, 186),
+                          ),
+                          const SizedBox(width: 10),
+                          FontSubtitle2(
+                              label:
+                                  'Pressure\n${myWeatherProvider.weather!.pressure}'),
+                        ],
+                      ),
+                      Expanded(child: Container()),
+                      Center(
+                        child: Image.network(
+                          '$imgUrl${myWeatherProvider.weather!.weatherIcon}@4x.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      Center(
+                        child: HeadLine1(
+                          label: myWeatherProvider.weather!.weatherDescription
+                              .toString(),
+                        ),
+                      ),
+                      Expanded(child: Container()),
+                      Row(
+                        children: [
+                          const FaIcon(
+                            FontAwesomeIcons.locationPin,
+                            color: Color.fromARGB(255, 187, 186, 186),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 10),
+                          FontSubtitle1(
+                            label:
+                                myWeatherProvider.weather!.cityName.toString(),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        myWeatherProvider.weather!.temp.toString(),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w100,
+                          fontSize: 80,
+                        ),
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const FaIcon(
+                            FontAwesomeIcons.temperatureArrowUp,
+                            color: Color.fromARGB(255, 187, 186, 186),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 10),
+                          FontSubtitle2(
+                              label:
+                                  'Temp max\n${myWeatherProvider.weather!.tempMax}'),
+                          const SizedBox(width: 20),
+                          const FaIcon(
+                            FontAwesomeIcons.temperatureArrowDown,
+                            color: Color.fromARGB(255, 187, 186, 186),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 10),
+                          FontSubtitle2(
+                              label:
+                                  'Temp min\n${myWeatherProvider.weather!.tempMin}'),
+                          const SizedBox(width: 20),
+                          const FaIcon(
+                            FontAwesomeIcons.wind,
+                            color: Color.fromARGB(255, 187, 186, 186),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 10),
+                          FontSubtitle2(
+                              label:
+                                  'Speed\n${myWeatherProvider.weather!.speed}'),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      FontSubtitle2(
+                          label:
+                              'Feel Likes: ${myWeatherProvider.weather!.feelsLike}'),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
