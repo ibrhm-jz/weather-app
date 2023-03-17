@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    initializeDateFormatting('es', null);
+    initializeDateFormatting('en', null);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => WeatherProvider()),
