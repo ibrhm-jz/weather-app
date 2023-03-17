@@ -215,9 +215,9 @@ class WeatherState extends State<Weather> {
                                   fontSize: 80,
                                 ),
                               ),
-                              const TextSpan(
-                                text: 'C',
-                                style: TextStyle(
+                              TextSpan(
+                                text: myWeatherProvider.weather!.format,
+                                style: const TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.w100,
                                   fontSize: 40,
