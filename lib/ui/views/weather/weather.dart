@@ -3,6 +3,8 @@ import 'package:clima_meteoroligico/constants/constants.dart';
 import 'package:clima_meteoroligico/data/models/weather_model.dart';
 import 'package:clima_meteoroligico/data/providers/weather_provider.dart';
 import 'package:clima_meteoroligico/data/repository/open_weather_repository.dart';
+import 'package:clima_meteoroligico/data/repository/weather_location_repository.dart';
+import 'package:clima_meteoroligico/ui/views/weather/weather_locations_dialog.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_loader.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_type_text.dart';
 import 'package:clima_meteoroligico/utils/service_location.dart';
@@ -26,7 +28,9 @@ class WeatherState extends State<Weather> {
   late WeatherProvider myWeatherProvider;
   @override
   void initState() {
+    _getDbWeatherLocations();
     _onLoad();
+
     super.initState();
   }
 
@@ -45,6 +49,7 @@ class WeatherState extends State<Weather> {
   _determinePosition() async {
     setState(() => _loading = true);
     Position? position = await ServiceLocation.instance.position();
+
     if (position != null) {
       setState(() => {this.position = position});
       await _getWeather(
@@ -67,6 +72,13 @@ class WeatherState extends State<Weather> {
       _loading = false;
     });
     myWeatherProvider.setWeather(weather: weatherModel!);
+  }
+
+  _getDbWeatherLocations() async {
+    WeatherLocationRepository weatherLocationRepository =
+        WeatherLocationRepository();
+    final response = await weatherLocationRepository.getLocations();
+    myWeatherProvider.setWeatherLocations(weatherLocations: response);
   }
 
   @override
@@ -157,8 +169,15 @@ class WeatherState extends State<Weather> {
                           ),
                           const SizedBox(width: 10),
                           IconButton(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/countries'),
+                            onPressed: () async => await showDialog(
+                              context: context,
+                              builder: (context) {
+                                return WeatherLocationsDialog(
+                                  onPressed: () {},
+                                );
+                              },
+                            ),
+                            // =>Navigator.pushNamed(context, '/countries'),
                             icon: const FaIcon(
                               FontAwesomeIcons.pen,
                               color: Color.fromARGB(255, 187, 186, 186),

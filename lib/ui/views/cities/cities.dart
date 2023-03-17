@@ -1,6 +1,8 @@
 import 'package:clima_meteoroligico/data/models/airlabs_cities_model.dart';
+import 'package:clima_meteoroligico/data/models/weather_location_model.dart';
 import 'package:clima_meteoroligico/data/providers/airlabs_provider.dart';
 import 'package:clima_meteoroligico/data/repository/airlabs_repository.dart';
+import 'package:clima_meteoroligico/data/repository/weather_location_repository.dart';
 import 'package:clima_meteoroligico/ui/widgets/confirm_dialog.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_loader.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_search_input.dart';
@@ -83,20 +85,33 @@ class CitiesState extends State<Cities> {
                                 context: context,
                                 builder: (context) {
                                   return ConfirmedDialog(
-                                    onPressed: () async => Navigator.of(context)
-                                        .pushNamedAndRemoveUntil(
-                                      '/weather-information',
-                                      arguments: {
-                                        'latitude':
-                                            filteredList[i].lat.toString(),
-                                        'longitude':
-                                            filteredList[i].long.toString(),
-                                      },
-                                      (Route<dynamic> route) => false,
-                                    ),
+                                    onPressed: () async {
+                                      WeatherLocationRepository
+                                          weatherLocationRepository =
+                                          WeatherLocationRepository();
+                                      final response =
+                                          await weatherLocationRepository
+                                              .insertLocation(
+                                        WeatherLocationModel(
+                                          lat: filteredList[i].lat.toString(),
+                                          long: filteredList[i].long.toString(),
+                                          name: filteredList[i].name.toString(),
+                                        ),
+                                      );
+                                      print(response);
+                                      Navigator.of(context)
+                                          .pushNamedAndRemoveUntil(
+                                        '/weather-information',
+                                        arguments: {
+                                          'latitude':
+                                              filteredList[i].lat.toString(),
+                                          'longitude':
+                                              filteredList[i].long.toString(),
+                                        },
+                                        (Route<dynamic> route) => false,
+                                      );
+                                    },
                                     titleText: 'Want to add to list?',
-                                    // subTitleText:
-                                    //     'Este cliente se eliminara y no se podra recuperar.',
                                   );
                                 },
                               ),
