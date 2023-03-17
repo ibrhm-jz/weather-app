@@ -10,6 +10,7 @@ class WeatherModel {
   String? weatherIcon;
   double? speed;
   String? cityName;
+  String? format;
   WeatherModel.fromJson(Map<String, dynamic> json) {
     temp = double.parse(json['main']['temp'].toString());
     feelsLike = double.parse(json['main']['feels_like'].toString());
@@ -25,5 +26,6 @@ class WeatherModel {
         ? double.parse(json['wind']['speed'].toString())
         : 0.0;
     cityName = json.containsKey('name') ? json['name'] : '';
+    format = 'C';
   }
 }

@@ -4,7 +4,8 @@ import 'package:clima_meteoroligico/data/models/weather_model.dart';
 import 'package:clima_meteoroligico/data/providers/weather_provider.dart';
 import 'package:clima_meteoroligico/data/repository/open_weather_repository.dart';
 import 'package:clima_meteoroligico/data/repository/weather_location_repository.dart';
-import 'package:clima_meteoroligico/ui/views/weather/weather_locations_dialog.dart';
+import 'package:clima_meteoroligico/ui/views/weather/dialogs/weather_format_dialog.dart';
+import 'package:clima_meteoroligico/ui/views/weather/dialogs/weather_locations_dialog.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_loader.dart';
 import 'package:clima_meteoroligico/ui/widgets/default_type_text.dart';
 import 'package:clima_meteoroligico/utils/service_location.dart';
@@ -49,7 +50,6 @@ class WeatherState extends State<Weather> {
   _determinePosition() async {
     setState(() => _loading = true);
     Position? position = await ServiceLocation.instance.position();
-
     if (position != null) {
       setState(() => {this.position = position});
       await _getWeather(
@@ -57,7 +57,14 @@ class WeatherState extends State<Weather> {
         longitude: this.position!.longitude.toString(),
       );
     } else {
-      Navigator.of(context).pushReplacementNamed('/countries');
+      if (myWeatherProvider.weatherLocations.isEmpty) {
+        Navigator.of(context).pushReplacementNamed('/countries');
+      } else {
+        await _getWeather(
+          latitude: myWeatherProvider.weatherLocations.first.lat!,
+          longitude: myWeatherProvider.weatherLocations.first.long!,
+        );
+      }
     }
   }
 
@@ -186,37 +193,40 @@ class WeatherState extends State<Weather> {
                           ),
                         ],
                       ),
-                      RichText(
-                        textAlign: TextAlign.start,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: '${myWeatherProvider.weather!.temp}°',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w100,
-                                fontSize: 80,
+                      GestureDetector(
+                        onTap: () async => await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return WeatherFormatDialog(
+                              onPressed: () {},
+                            );
+                          },
+                        ),
+                        child: RichText(
+                          textAlign: TextAlign.start,
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text:
+                                    '${myWeatherProvider.weather!.temp!.toStringAsFixed(1)}°',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w100,
+                                  fontSize: 80,
+                                ),
                               ),
-                            ),
-                            const TextSpan(
-                              text: 'C',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w100,
-                                fontSize: 40,
+                              const TextSpan(
+                                text: 'C',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w100,
+                                  fontSize: 40,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                      // Text(
-                      //   myWeatherProvider.weather!.temp.toString() + 'C',
-                      //   style: const TextStyle(
-                      //     color: Colors.black,
-                      //     fontWeight: FontWeight.w100,
-                      //     fontSize: 80,
-                      //   ),
-                      // ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -229,7 +239,7 @@ class WeatherState extends State<Weather> {
                           const SizedBox(width: 10),
                           FontSubtitle2(
                               label:
-                                  'Temp max\n${myWeatherProvider.weather!.tempMax}'),
+                                  'Temp max\n${myWeatherProvider.weather!.tempMax!.toStringAsFixed(1)}'),
                           const SizedBox(width: 20),
                           const FaIcon(
                             FontAwesomeIcons.temperatureArrowDown,
@@ -239,7 +249,7 @@ class WeatherState extends State<Weather> {
                           const SizedBox(width: 10),
                           FontSubtitle2(
                               label:
-                                  'Temp min\n${myWeatherProvider.weather!.tempMin}'),
+                                  'Temp min\n${myWeatherProvider.weather!.tempMin!.toStringAsFixed(1)}'),
                           const SizedBox(width: 20),
                           const FaIcon(
                             FontAwesomeIcons.wind,
@@ -249,7 +259,7 @@ class WeatherState extends State<Weather> {
                           const SizedBox(width: 10),
                           FontSubtitle2(
                               label:
-                                  'Speed\n${myWeatherProvider.weather!.speed}'),
+                                  'Speed\n${myWeatherProvider.weather!.speed!.toStringAsFixed(1)}'),
                         ],
                       ),
                       const SizedBox(height: 20),
